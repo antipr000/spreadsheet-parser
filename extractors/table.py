@@ -15,6 +15,17 @@ While extracting tables we need to consider the following cases:
     - formula
     - color / background color
     - font
-5. 2 tables will be separated by at least one blank row / column around the bounding box.
+5. For determining bounding boxes for 2 tables, we will use an LLM.
 6. Table can have multiple header rows. A header can in turn have sub headers. We need to structure the data accurately.
 """
+
+
+from typing import List
+from openpyxl.worksheet.worksheet import Worksheet
+
+from dto.coordinate import BoundingBox
+
+
+class TableExtractor:
+    def _generate_bounding_boxes(self, worksheet: Worksheet) -> List[BoundingBox]:
+        table_data_coordinates = worksheet.calculate_dimension()
