@@ -1,9 +1,9 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import List, Optional
 
 
 class CellData(BaseModel):
-    cell_address: str
+    coordinate: str
     value: Optional[str] = None
     formula: Optional[str] = None
     background_color: Optional[str] = None
@@ -16,4 +16,5 @@ class CellData(BaseModel):
     font_strikethrough: Optional[bool] = None
     font_subscript: Optional[bool] = None
     font_superscript: Optional[bool] = None
-    font_color: Optional[str] = None
+    merged_with: Optional[str] = None  # top-left cell of the merge range, if merged
+    data_validation: Optional[List[str]] = None  # allowed values / choices

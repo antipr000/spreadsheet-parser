@@ -1,6 +1,11 @@
 import openpyxl
+import dotenv
 from openpyxl.utils.cell import range_boundaries
 from extractors.chart import ChartExtractor
+from extractors.table import TableExtractor
+
+
+dotenv.load_dotenv()
 
 
 def ref_formula(obj):
@@ -48,12 +53,22 @@ def parse_excel(file_path):
         rich_text=True,
     )
     print(workbook.sheetnames)
-    sheet = workbook["Charts"]
 
-    chart_extractor = ChartExtractor()
-    charts = chart_extractor.extract(sheet, workbook)
-    print(charts)
+    sheet = workbook["Sheet_8"]
+
+    table_extractor = TableExtractor()
+    tables = table_extractor.extract(sheet)
+    if tables:
+        print(f"\n--- Tables in 'Charts' ---")
+        for table in tables:
+            print("--------------------------------")
+            print("Heading:")
+            for cell in table.heading:
+                print(cell.value)
+            print("Footer:")
+            for cell in table.footer:
+                print(cell.value)
 
 
 if __name__ == "__main__":
-    parse_excel("master.xlsx")
+    parse_excel("master2.xlsx")

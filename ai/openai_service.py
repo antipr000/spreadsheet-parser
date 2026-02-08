@@ -4,7 +4,7 @@ from openai import OpenAI
 from ai.service import AIService
 
 
-_DEFAULT_MODEL = "gpt-4.1"
+_DEFAULT_MODEL = "gpt-5.2"
 
 
 class OpenAIService(AIService):

@@ -2,7 +2,7 @@ from openpyxl import Workbook
 from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.utils.cell import range_boundaries, get_column_letter
 from dto.chart_data import ChartData, ChartSeries, DataRange
-from dto.coordinate import BoundingBox, Coordinate
+from dto.coordinate import BoundingBox
 from typing import Any, List, Optional
 
 
@@ -56,17 +56,15 @@ class ChartExtractor:
     # ---- bounding box ---------------------------------------------------------
 
     @staticmethod
-    def _marker_to_coordinate(marker) -> Coordinate:
+    def _marker_to_coordinate(marker) -> str:
         """
         Convert an AnchorMarker (0-indexed col/row) to a Coordinate.
         openpyxl markers are 0-based, so we add 1 for the human-readable form.
         """
         col = int(getattr(marker, "col", 0)) + 1
         row = int(getattr(marker, "row", 0)) + 1
-        return Coordinate(
-            column=get_column_letter(col),
-            row=str(row),
-        )
+
+        return f"{get_column_letter(col)}{row}"
 
     # Approximate default cell dimensions in EMUs (English Metric Units).
     # Excel's default row height is 15pt ≈ 0.53cm ≈ 190500 EMU.
@@ -74,7 +72,7 @@ class ChartExtractor:
     _DEFAULT_COL_EMU = 609600
     _DEFAULT_ROW_EMU = 190500
 
-    def _bottom_right_from_extent(self, from_marker, ext) -> Coordinate:
+    def _bottom_right_from_extent(self, from_marker, ext) -> str:
         """
         Compute the bottom-right Coordinate for a OneCellAnchor by adding
         the extent (cx/cy in EMUs) to the starting marker position.
@@ -87,10 +85,7 @@ class ChartExtractor:
         end_col = start_col + max(1, width_emu // self._DEFAULT_COL_EMU)
         end_row = start_row + max(1, height_emu // self._DEFAULT_ROW_EMU)
 
-        return Coordinate(
-            column=get_column_letter(end_col + 1),  # back to 1-indexed
-            row=str(end_row + 1),
-        )
+        return f"{get_column_letter(end_col + 1)}{end_row + 1}"
 
     def _extract_bounding_box(self, chart) -> BoundingBox:
         """
