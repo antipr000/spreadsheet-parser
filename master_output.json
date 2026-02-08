@@ -1,0 +1,1632 @@
+{
+  "file_name": "master.xlsx",
+  "sheets": [
+    {
+      "sheet_name": "Sales Data",
+      "chunks": {
+        "block0": [
+          {
+            "block_type": "table",
+            "bounding_box": {
+              "top_left": "A1",
+              "bottom_right": "E7"
+            },
+            "heading": [
+              {
+                "coordinate": "A1",
+                "value": "Month",
+                "background_color": "#4472C4",
+                "font_color": "#FFFFFF",
+                "font_bold": true,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B1",
+                "value": "Product A",
+                "background_color": "#4472C4",
+                "font_color": "#FFFFFF",
+                "font_bold": true,
+                "font_italic": false
+              },
+              {
+                "coordinate": "C1",
+                "value": "Product B",
+                "background_color": "#4472C4",
+                "font_color": "#FFFFFF",
+                "font_bold": true,
+                "font_italic": false
+              },
+              {
+                "coordinate": "D1",
+                "value": "Product C",
+                "background_color": "#4472C4",
+                "font_color": "#FFFFFF",
+                "font_bold": true,
+                "font_italic": false
+              },
+              {
+                "coordinate": "E1",
+                "value": "Total",
+                "background_color": "#4472C4",
+                "font_color": "#FFFFFF",
+                "font_bold": true,
+                "font_italic": false
+              }
+            ],
+            "data": [
+              {
+                "coordinate": "A2",
+                "value": "January",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B2",
+                "value": "12000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "C2",
+                "value": "15000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "D2",
+                "value": "18000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "E2",
+                "value": "45000.0",
+                "formula": "=SUM(B2:D2)",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A3",
+                "value": "February",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B3",
+                "value": "13500",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "C3",
+                "value": "16200",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "D3",
+                "value": "19500",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "E3",
+                "value": "49200.0",
+                "formula": "=SUM(B3:D3)",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A4",
+                "value": "March",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B4",
+                "value": "14800",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "C4",
+                "value": "17500",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "D4",
+                "value": "21000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "E4",
+                "value": "53300.0",
+                "formula": "=SUM(B4:D4)",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A5",
+                "value": "April",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B5",
+                "value": "15200",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "C5",
+                "value": "18000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "D5",
+                "value": "22500",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "E5",
+                "value": "55700.0",
+                "formula": "=SUM(B5:D5)",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A6",
+                "value": "May",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B6",
+                "value": "16000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "C6",
+                "value": "19000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "D6",
+                "value": "24000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "E6",
+                "value": "59000.0",
+                "formula": "=SUM(B6:D6)",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A7",
+                "value": "June",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B7",
+                "value": "16800",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "C7",
+                "value": "20000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "D7",
+                "value": "25500",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "E7",
+                "value": "62300.0",
+                "formula": "=SUM(B7:D7)",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              }
+            ],
+            "footer": [],
+            "html": "<table border=\"1\" cellpadding=\"5\" cellspacing=\"0\">\n  <thead>\n    <tr>\n      <th>Month</th>\n      <th>Product A</th>\n      <th>Product B</th>\n      <th>Product C</th>\n      <th>Total</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>January</td>\n      <td>12000</td>\n      <td>15000</td>\n      <td>18000</td>\n      <td>45000.0</td>\n    </tr>\n    <tr>\n      <td>February</td>\n      <td>13500</td>\n      <td>16200</td>\n      <td>19500</td>\n      <td>49200.0</td>\n    </tr>\n    <tr>\n      <td>March</td>\n      <td>14800</td>\n      <td>17500</td>\n      <td>21000</td>\n      <td>53300.0</td>\n    </tr>\n    <tr>\n      <td>April</td>\n      <td>15200</td>\n      <td>18000</td>\n      <td>22500</td>\n      <td>55700.0</td>\n    </tr>\n    <tr>\n      <td>May</td>\n      <td>16000</td>\n      <td>19000</td>\n      <td>24000</td>\n      <td>59000.0</td>\n    </tr>\n    <tr>\n      <td>June</td>\n      <td>16800</td>\n      <td>20000</td>\n      <td>25500</td>\n      <td>62300.0</td>\n    </tr>\n  </tbody>\n</table>",
+            "cells": [
+              {
+                "coordinate": "A1",
+                "value": "Month",
+                "background_color": "#4472C4",
+                "font_color": "#FFFFFF",
+                "font_bold": true,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B1",
+                "value": "Product A",
+                "background_color": "#4472C4",
+                "font_color": "#FFFFFF",
+                "font_bold": true,
+                "font_italic": false
+              },
+              {
+                "coordinate": "C1",
+                "value": "Product B",
+                "background_color": "#4472C4",
+                "font_color": "#FFFFFF",
+                "font_bold": true,
+                "font_italic": false
+              },
+              {
+                "coordinate": "D1",
+                "value": "Product C",
+                "background_color": "#4472C4",
+                "font_color": "#FFFFFF",
+                "font_bold": true,
+                "font_italic": false
+              },
+              {
+                "coordinate": "E1",
+                "value": "Total",
+                "background_color": "#4472C4",
+                "font_color": "#FFFFFF",
+                "font_bold": true,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A2",
+                "value": "January",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B2",
+                "value": "12000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "C2",
+                "value": "15000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "D2",
+                "value": "18000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "E2",
+                "value": "45000.0",
+                "formula": "=SUM(B2:D2)",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A3",
+                "value": "February",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B3",
+                "value": "13500",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "C3",
+                "value": "16200",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "D3",
+                "value": "19500",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "E3",
+                "value": "49200.0",
+                "formula": "=SUM(B3:D3)",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A4",
+                "value": "March",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B4",
+                "value": "14800",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "C4",
+                "value": "17500",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "D4",
+                "value": "21000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "E4",
+                "value": "53300.0",
+                "formula": "=SUM(B4:D4)",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A5",
+                "value": "April",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B5",
+                "value": "15200",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "C5",
+                "value": "18000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "D5",
+                "value": "22500",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "E5",
+                "value": "55700.0",
+                "formula": "=SUM(B5:D5)",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A6",
+                "value": "May",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B6",
+                "value": "16000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "C6",
+                "value": "19000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "D6",
+                "value": "24000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "E6",
+                "value": "59000.0",
+                "formula": "=SUM(B6:D6)",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A7",
+                "value": "June",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B7",
+                "value": "16800",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "C7",
+                "value": "20000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "D7",
+                "value": "25500",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "E7",
+                "value": "62300.0",
+                "formula": "=SUM(B7:D7)",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "sheet_name": "Charts",
+      "chunks": {
+        "block0": [
+          {
+            "block_type": "table",
+            "bounding_box": {
+              "top_left": "A1",
+              "bottom_right": "B4"
+            },
+            "heading": [
+              {
+                "coordinate": "A1",
+                "value": "Product",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B1",
+                "value": "Total Sales",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              }
+            ],
+            "data": [
+              {
+                "coordinate": "A2",
+                "value": "Product A",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B2",
+                "value": "88300",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A3",
+                "value": "Product B",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B3",
+                "value": "105700",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A4",
+                "value": "Product C",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B4",
+                "value": "130500",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              }
+            ],
+            "footer": [],
+            "html": "<table border=\"1\" cellpadding=\"5\" cellspacing=\"0\">\n  <thead>\n    <tr>\n      <th>Product</th>\n      <th>Total Sales</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>Product A</td>\n      <td>88300</td>\n    </tr>\n    <tr>\n      <td>Product B</td>\n      <td>105700</td>\n    </tr>\n    <tr>\n      <td>Product C</td>\n      <td>130500</td>\n    </tr>\n  </tbody>\n</table>",
+            "cells": [
+              {
+                "coordinate": "A1",
+                "value": "Product",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B1",
+                "value": "Total Sales",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A2",
+                "value": "Product A",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B2",
+                "value": "88300",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A3",
+                "value": "Product B",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B3",
+                "value": "105700",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A4",
+                "value": "Product C",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B4",
+                "value": "130500",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              }
+            ]
+          }
+        ],
+        "block1": [
+          {
+            "block_type": "chart",
+            "bounding_box": {
+              "top_left": "E2",
+              "bottom_right": "M16"
+            },
+            "chart_data": {
+              "title": "Total Sales by Product",
+              "bounding_box": {
+                "top_left": "E2",
+                "bottom_right": "M16"
+              },
+              "chart_type": "pie",
+              "categories": [
+                "Product A",
+                "Product B",
+                "Product C"
+              ],
+              "category_range": {
+                "sheet_name": "Charts",
+                "start": "A2",
+                "end": "A4"
+              },
+              "series": [
+                {
+                  "name": "Total Sales",
+                  "data_range": {
+                    "sheet_name": "Charts",
+                    "start": "B2",
+                    "end": "B4"
+                  },
+                  "values": [
+                    88300,
+                    105700,
+                    130500
+                  ]
+                }
+              ]
+            },
+            "cells": []
+          }
+        ],
+        "block2": [
+          {
+            "block_type": "table",
+            "bounding_box": {
+              "top_left": "A6",
+              "bottom_right": "B12"
+            },
+            "heading": [
+              {
+                "coordinate": "A6",
+                "value": "Month",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B6",
+                "value": "Sales",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              }
+            ],
+            "data": [
+              {
+                "coordinate": "A7",
+                "value": "January",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B7",
+                "value": "45000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A8",
+                "value": "February",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B8",
+                "value": "49200",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A9",
+                "value": "March",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B9",
+                "value": "53300",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A10",
+                "value": "April",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B10",
+                "value": "55700",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A11",
+                "value": "May",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B11",
+                "value": "59000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A12",
+                "value": "June",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B12",
+                "value": "62300",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              }
+            ],
+            "footer": [],
+            "html": "<table border=\"1\" cellpadding=\"5\" cellspacing=\"0\">\n  <thead>\n    <tr>\n      <th>Month</th>\n      <th>Sales</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>January</td>\n      <td>45000</td>\n    </tr>\n    <tr>\n      <td>February</td>\n      <td>49200</td>\n    </tr>\n    <tr>\n      <td>March</td>\n      <td>53300</td>\n    </tr>\n    <tr>\n      <td>April</td>\n      <td>55700</td>\n    </tr>\n    <tr>\n      <td>May</td>\n      <td>59000</td>\n    </tr>\n    <tr>\n      <td>June</td>\n      <td>62300</td>\n    </tr>\n  </tbody>\n</table>",
+            "cells": [
+              {
+                "coordinate": "A6",
+                "value": "Month",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B6",
+                "value": "Sales",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A7",
+                "value": "January",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B7",
+                "value": "45000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A8",
+                "value": "February",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B8",
+                "value": "49200",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A9",
+                "value": "March",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B9",
+                "value": "53300",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A10",
+                "value": "April",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B10",
+                "value": "55700",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A11",
+                "value": "May",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B11",
+                "value": "59000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A12",
+                "value": "June",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B12",
+                "value": "62300",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              }
+            ]
+          }
+        ],
+        "block3": [
+          {
+            "block_type": "chart",
+            "bounding_box": {
+              "top_left": "E20",
+              "bottom_right": "M34"
+            },
+            "chart_data": {
+              "title": "Sales Distribution by Month",
+              "bounding_box": {
+                "top_left": "E20",
+                "bottom_right": "M34"
+              },
+              "chart_type": "pie",
+              "categories": [
+                "April",
+                "May",
+                "June",
+                "",
+                "",
+                ""
+              ],
+              "category_range": {
+                "sheet_name": "Charts",
+                "start": "A10",
+                "end": "A15"
+              },
+              "series": [
+                {
+                  "name": "53300",
+                  "data_range": {
+                    "sheet_name": "Charts",
+                    "start": "B10",
+                    "end": "B15"
+                  },
+                  "values": [
+                    55700,
+                    59000,
+                    62300,
+                    null,
+                    null,
+                    null
+                  ]
+                }
+              ]
+            },
+            "cells": []
+          }
+        ]
+      }
+    },
+    {
+      "sheet_name": "Employees",
+      "chunks": {
+        "block0": [
+          {
+            "block_type": "table",
+            "bounding_box": {
+              "top_left": "A1",
+              "bottom_right": "D6"
+            },
+            "heading": [
+              {
+                "coordinate": "A1",
+                "value": "Name",
+                "background_color": "#4472C4",
+                "font_color": "#FFFFFF",
+                "font_bold": true,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B1",
+                "value": "Department",
+                "background_color": "#4472C4",
+                "font_color": "#FFFFFF",
+                "font_bold": true,
+                "font_italic": false
+              },
+              {
+                "coordinate": "C1",
+                "value": "Salary",
+                "background_color": "#4472C4",
+                "font_color": "#FFFFFF",
+                "font_bold": true,
+                "font_italic": false
+              },
+              {
+                "coordinate": "D1",
+                "value": "Performance",
+                "background_color": "#4472C4",
+                "font_color": "#FFFFFF",
+                "font_bold": true,
+                "font_italic": false
+              }
+            ],
+            "data": [
+              {
+                "coordinate": "A2",
+                "value": "John Doe",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B2",
+                "value": "Sales",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "C2",
+                "value": "75000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "D2",
+                "value": "Excellent",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A3",
+                "value": "Jane Smith",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B3",
+                "value": "Marketing",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "C3",
+                "value": "68000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "D3",
+                "value": "Good",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A4",
+                "value": "Bob Johnson",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B4",
+                "value": "IT",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "C4",
+                "value": "85000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "D4",
+                "value": "Excellent",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A5",
+                "value": "Alice Williams",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B5",
+                "value": "HR",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "C5",
+                "value": "62000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "D5",
+                "value": "Good",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A6",
+                "value": "Charlie Brown",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B6",
+                "value": "Finance",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "C6",
+                "value": "78000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "D6",
+                "value": "Excellent",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              }
+            ],
+            "footer": [],
+            "html": "<table border=\"1\" cellpadding=\"5\" cellspacing=\"0\">\n  <thead>\n    <tr>\n      <th>Name</th>\n      <th>Department</th>\n      <th>Salary</th>\n      <th>Performance</th>\n    </tr>\n  </thead>\n  <tbody>\n    <tr>\n      <td>John Doe</td>\n      <td>Sales</td>\n      <td>75000</td>\n      <td>Excellent</td>\n    </tr>\n    <tr>\n      <td>Jane Smith</td>\n      <td>Marketing</td>\n      <td>68000</td>\n      <td>Good</td>\n    </tr>\n    <tr>\n      <td>Bob Johnson</td>\n      <td>IT</td>\n      <td>85000</td>\n      <td>Excellent</td>\n    </tr>\n    <tr>\n      <td>Alice Williams</td>\n      <td>HR</td>\n      <td>62000</td>\n      <td>Good</td>\n    </tr>\n    <tr>\n      <td>Charlie Brown</td>\n      <td>Finance</td>\n      <td>78000</td>\n      <td>Excellent</td>\n    </tr>\n  </tbody>\n</table>",
+            "cells": [
+              {
+                "coordinate": "A1",
+                "value": "Name",
+                "background_color": "#4472C4",
+                "font_color": "#FFFFFF",
+                "font_bold": true,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B1",
+                "value": "Department",
+                "background_color": "#4472C4",
+                "font_color": "#FFFFFF",
+                "font_bold": true,
+                "font_italic": false
+              },
+              {
+                "coordinate": "C1",
+                "value": "Salary",
+                "background_color": "#4472C4",
+                "font_color": "#FFFFFF",
+                "font_bold": true,
+                "font_italic": false
+              },
+              {
+                "coordinate": "D1",
+                "value": "Performance",
+                "background_color": "#4472C4",
+                "font_color": "#FFFFFF",
+                "font_bold": true,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A2",
+                "value": "John Doe",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B2",
+                "value": "Sales",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "C2",
+                "value": "75000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "D2",
+                "value": "Excellent",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A3",
+                "value": "Jane Smith",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B3",
+                "value": "Marketing",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "C3",
+                "value": "68000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "D3",
+                "value": "Good",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A4",
+                "value": "Bob Johnson",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B4",
+                "value": "IT",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "C4",
+                "value": "85000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "D4",
+                "value": "Excellent",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A5",
+                "value": "Alice Williams",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B5",
+                "value": "HR",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "C5",
+                "value": "62000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "D5",
+                "value": "Good",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "A6",
+                "value": "Charlie Brown",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "B6",
+                "value": "Finance",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "C6",
+                "value": "78000",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              },
+              {
+                "coordinate": "D6",
+                "value": "Excellent",
+                "font_color": "theme:1",
+                "font_size": 11,
+                "font_name": "Calibri",
+                "font_bold": false,
+                "font_italic": false
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -1,16 +1,20 @@
+"""
+Extractor that extracts all charts from a worksheet.
+
+Resolves cell references against the live workbook so that values and
+labels are always populated — even when the chart XML contains no cache.
+
+Also provides ``extract_blocks()`` which wraps each ``ChartData`` in a
+``ChartBlock`` for use by the orchestrator.
+"""
+
 from openpyxl import Workbook
 from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.utils.cell import range_boundaries, get_column_letter
 from dto.chart_data import ChartData, ChartSeries, DataRange
+from dto.blocks import ChartBlock
 from dto.coordinate import BoundingBox
 from typing import Any, List, Optional
-
-
-"""
-Extractor that extracts all charts from a worksheet.
-Resolves cell references against the live workbook so that values and
-labels are always populated — even when the chart XML contains no cache.
-"""
 
 
 class ChartExtractor:
@@ -117,16 +121,10 @@ class ChartExtractor:
 
         # Fallback: anchor is a plain string like "E15" (newly created chart)
         if isinstance(anchor, str) and anchor:
-            col_str = "".join(c for c in anchor if c.isalpha())
-            row_str = "".join(c for c in anchor if c.isdigit())
-            coord = Coordinate(column=col_str, row=row_str)
-            return BoundingBox(top_left=coord, bottom_right=coord)
+            return BoundingBox(top_left=anchor, bottom_right=anchor)
 
         # No usable anchor information at all
-        return BoundingBox(
-            top_left=Coordinate(column="", row=""),
-            bottom_right=Coordinate(column="", row=""),
-        )
+        return BoundingBox(top_left="A1", bottom_right="A1")
 
     # ---- ref / formula helpers ------------------------------------------------
 
@@ -272,3 +270,13 @@ class ChartExtractor:
             )
 
         return charts
+
+    def extract_blocks(self, sheet: Worksheet, wb: Workbook) -> List[ChartBlock]:
+        """Extract charts and wrap each as a ``ChartBlock``."""
+        return [
+            ChartBlock(
+                bounding_box=cd.bounding_box,
+                chart_data=cd,
+            )
+            for cd in self.extract(sheet, wb)
+        ]

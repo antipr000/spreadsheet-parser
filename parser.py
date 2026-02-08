@@ -1,49 +1,123 @@
-import openpyxl
-import dotenv
-from openpyxl.utils.cell import range_boundaries
-from extractors.chart import ChartExtractor
-from extractors.table import TableExtractor
+"""
+Spreadsheet parser — CLI entry point.
 
+Usage:
+    python parser.py <excel_file> [--output <output.json>]
+
+Loads an Excel workbook, extracts all semantic blocks from every sheet
+(headings, tables, key-value regions, text, charts), groups them into
+chunks, and writes the result as a single JSON file.
+"""
+
+from __future__ import annotations
+
+import argparse
+import logging
+import os
+import re
+import sys
+from pathlib import Path
+from typing import Any, Dict, Tuple
+
+import dotenv
+import formulas
+import numpy as np
+import openpyxl
+
+from dto.blocks import TableBlock, Block
+from dto.output import SheetResult, WorkbookResult
+from extractors.sheet import SheetExtractor
+from grouping import group_blocks_into_chunks
+from utils.html import render_table_html
 
 dotenv.load_dotenv()
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s  %(levelname)-8s  %(name)s  %(message)s",
+)
+logger = logging.getLogger(__name__)
 
-def ref_formula(obj):
-    # returns something like "'Sheet1'!$B$2:$B$10"
-    return getattr(getattr(obj, "numRef", None), "f", None) or getattr(
-        getattr(obj, "strRef", None), "f", None
-    )
+
+# -------------------------------------------------------------------
+# Post-processing: fill in HTML for TableBlocks
+# -------------------------------------------------------------------
 
 
-def safe_title(chart):
-    # title can be rich text; keep it best-effort
+def _enrich_blocks(blocks: list[Block]) -> list[Block]:
+    """
+    Apply any post-processing enrichment to blocks before serialisation.
+    Currently: render HTML for table blocks.
+    """
+    for block in blocks:
+        if isinstance(block, TableBlock) and not block.html:
+            block.html = render_table_html(
+                heading=block.heading,
+                data=block.data,
+                footer=block.footer,
+            )
+    return blocks
+
+
+# -------------------------------------------------------------------
+# Main pipeline
+# -------------------------------------------------------------------
+
+
+def _compute_formula_values(file_path: str) -> Dict[Tuple[str, str], Any]:
+    """
+    Use the ``formulas`` library to evaluate every formula in the workbook
+    and return a lookup:  ``(sheet_name_upper, cell_coordinate) → value``.
+
+    Sheet names are normalised to uppercase for case-insensitive matching.
+    """
+    computed: Dict[Tuple[str, str], Any] = {}
     try:
-        if chart.title is None:
-            return None
-        # often chart.title.tx.rich.p[0].r[0].t or similar
-        tx = getattr(chart.title, "tx", None)
-        rich = getattr(tx, "rich", None)
-        if rich and rich.p and rich.p[0].r and rich.p[0].r[0].t:
-            return rich.p[0].r[0].t
+        xl_model = formulas.ExcelModel().loads(file_path).finish()
+        results = xl_model.calculate()
+
+        # results keys look like  "'[file.xlsx]SHEET NAME'!E2"  or range variants
+        file_stem = Path(file_path).name
+        pattern = re.compile(
+            r"'\[" + re.escape(file_stem) + r"\](.+?)'!([A-Z]+\d+)$",
+            re.IGNORECASE,
+        )
+        for key, val in results.items():
+            m = pattern.match(str(key))
+            if not m:
+                continue
+            sheet = m.group(1).upper()
+            coord = m.group(2).upper()
+
+            # Unwrap numpy scalars / 1-element arrays
+            v = val
+            if hasattr(v, "value"):
+                # Ranges object — get the underlying array
+                v = getattr(v, "value", v)
+            if isinstance(v, np.ndarray):
+                if v.size == 1:
+                    v = v.flat[0]
+                else:
+                    continue  # skip multi-cell range results
+            if isinstance(v, (np.integer, np.floating)):
+                v = v.item()
+
+            computed[(sheet, coord)] = v
     except Exception:
-        pass
-    return None
+        logger.warning(
+            "Formula evaluation failed — computed values will be unavailable",
+            exc_info=True,
+        )
+
+    return computed
 
 
-def cells_from_a1_range(wb, a1):
-    # a1: "'Sheet1'!$B$2:$B$10" or "Sheet1!B2:B10"
-    sheet_part, rng = a1.split("!")
-    sheet_name = sheet_part.strip("'")
-    ws2 = wb[sheet_name]
-    min_col, min_row, max_col, max_row = range_boundaries(rng.replace("$", ""))
-    out = []
-    for r in range(min_row, max_row + 1):
-        for c in range(min_col, max_col + 1):
-            out.append(ws2.cell(row=r, column=c).value)
-    return out
+def parse_workbook(file_path: str) -> WorkbookResult:
+    """
+    Parse an Excel workbook and return a structured ``WorkbookResult``.
+    """
+    logger.info("Loading workbook: %s", file_path)
 
-
-def parse_excel(file_path):
     workbook = openpyxl.load_workbook(
         file_path,
         data_only=False,
@@ -52,23 +126,96 @@ def parse_excel(file_path):
         keep_vba=True,
         rich_text=True,
     )
-    print(workbook.sheetnames)
 
-    sheet = workbook["Sheet_8"]
+    # Compute formula values up-front
+    logger.info("Computing formula values...")
+    computed_values = _compute_formula_values(file_path)
+    logger.info("  -> %d formula value(s) computed", len(computed_values))
 
-    table_extractor = TableExtractor()
-    tables = table_extractor.extract(sheet)
-    if tables:
-        print(f"\n--- Tables in 'Charts' ---")
-        for table in tables:
-            print("--------------------------------")
-            print("Heading:")
-            for cell in table.heading:
-                print(cell.value)
-            print("Footer:")
-            for cell in table.footer:
-                print(cell.value)
+    extractor = SheetExtractor()
+    sheet_results: list[SheetResult] = []
+
+    for sheet_name in workbook.sheetnames:
+        logger.info("Processing sheet: %s", sheet_name)
+        ws = workbook[sheet_name]
+
+        try:
+            # Extract all blocks
+            blocks = extractor.extract(ws, workbook, computed_values=computed_values)
+
+            # Enrich (e.g. render HTML for tables)
+            blocks = _enrich_blocks(blocks)
+
+            # Group headings with their content blocks into chunks
+            chunks = group_blocks_into_chunks(blocks)
+
+            sheet_results.append(
+                SheetResult(
+                    sheet_name=sheet_name,
+                    chunks=chunks,
+                )
+            )
+            logger.info(
+                "  -> %d block(s) in %d chunk(s)",
+                sum(len(v) for v in chunks.values()),
+                len(chunks),
+            )
+        except Exception:
+            logger.exception(
+                "Failed to process sheet '%s' — adding empty result", sheet_name
+            )
+            sheet_results.append(SheetResult(sheet_name=sheet_name))
+
+    return WorkbookResult(
+        file_name=Path(file_path).name,
+        sheets=sheet_results,
+    )
+
+
+# -------------------------------------------------------------------
+# CLI
+# -------------------------------------------------------------------
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Parse an Excel workbook into a structured JSON document.",
+    )
+    parser.add_argument(
+        "excel_file",
+        help="Path to the .xlsx file to parse",
+    )
+    parser.add_argument(
+        "-o",
+        "--output",
+        default=None,
+        help="Output JSON file path (default: <input_name>_output.json)",
+    )
+    args = parser.parse_args()
+
+    excel_path = args.excel_file
+    if not os.path.isfile(excel_path):
+        logger.error("File not found: %s", excel_path)
+        sys.exit(1)
+
+    # Determine output path
+    if args.output:
+        output_path = args.output
+    else:
+        stem = Path(excel_path).stem
+        output_path = f"{stem}_output.json"
+
+    # Run pipeline
+    result = parse_workbook(excel_path)
+
+    # Serialize to JSON
+    json_str = result.model_dump_json(indent=2, exclude_none=True)
+
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write(json_str)
+
+    logger.info("Output written to %s", output_path)
 
 
 if __name__ == "__main__":
-    parse_excel("master2.xlsx")
+    main()
