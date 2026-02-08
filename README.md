@@ -49,6 +49,13 @@ Excel file
                │
                ▼
 ┌─────────────────────────────────┐
+│  2. AI based region splitting   │  AI further breaks down into granular regions
+│     (candidate rectangular      │
+│      regions on the 2D grid)    │
+└──────────────┬──────────────────┘
+               │
+               ▼      
+┌─────────────────────────────────┐
 │  3. Block Detection              │  Heading → KeyValue → Text → Table
 │     (classify each region)       │  Heuristic and/or AI per detector
 └──────────────┬──────────────────┘
@@ -77,6 +84,8 @@ Excel sheets often contain multiple independent regions — side-by-side tables,
 1. *Find row bands* - Scan every row in the range. A row is empty if none of the cells have a value. A continuous band of non empty rows is a row band.
 2. *Find column bands* - Same logic as row bands, but for columns.
 3. *Candidate regions* - Every combination of row band, column band produces a candidate rectangular region. We verify each of them to contain at least one none empty cell.
+
+However, this does not consider all cases. Consider the situation when we have 2 tables right next to each other (without gap). To consider these, we pass the identified splitted regions with the cell data to LLM and ask it to split further if needed.
 
 ### Multi detector setup
 For each block, we have a detector type against it. For example, `HeadingDetector`, `KeyValueDetector`, `TableDetector`. The detectors have heuristic logic to compute / find the corresponding type. We also support LLM based logic for detection as well.

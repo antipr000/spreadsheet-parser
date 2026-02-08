@@ -31,11 +31,14 @@ from detection import (
     TextDetector,
     TableDetector,
 )
+from ai.factory import get_decision_service
+from ai.response_parser import parse_llm_json
 from dto.blocks import Block, ChartBlock
 from dto.cell_data import CellData
 from dto.coordinate import BoundingBox
 from dto.region import RegionData
 from extractors.chart import ChartExtractor
+from prompts.region_split import get_region_refinement_prompt
 
 logger = logging.getLogger(__name__)
 
@@ -353,6 +356,75 @@ class SheetExtractor:
         return regions
 
     # ------------------------------------------------------------------
+    # 2b. LLM-based region refinement
+    # ------------------------------------------------------------------
+
+    def _refine_regions_with_ai(
+        self,
+        all_cells: List[CellData],
+        heuristic_regions: List[Tuple[int, int, int, int]],
+    ) -> List[Tuple[int, int, int, int]]:
+        """
+        Send the full sheet cell data plus the heuristic region boundaries
+        to the LLM and ask it to refine — splitting regions that contain
+        multiple adjacent blocks without gaps.
+
+        Returns a refined list of (min_row, min_col, max_row, max_col).
+        Falls back to the heuristic regions on any failure.
+        """
+        # Build A1-notation bounding boxes for the prompt
+        heuristic_boxes = [
+            (_coord(c_min, r_min), _coord(c_max, r_max))
+            for r_min, c_min, r_max, c_max in heuristic_regions
+        ]
+
+        prompt = get_region_refinement_prompt(all_cells, heuristic_boxes)
+        ai = get_decision_service()
+
+        try:
+            raw = ai.get_decision(prompt)
+        except Exception:
+            logger.warning("LLM region refinement call failed — using heuristic regions", exc_info=True)
+            return heuristic_regions
+
+        parsed = parse_llm_json(raw)
+        if not isinstance(parsed, list):
+            logger.warning("LLM region refinement did not return a JSON array — using heuristic regions")
+            return heuristic_regions
+
+        refined: List[Tuple[int, int, int, int]] = []
+        for item in parsed:
+            try:
+                tl = item.get("top_left", "")
+                br = item.get("bottom_right", "")
+
+                tl_col_str = "".join(c for c in tl if c.isalpha())
+                tl_row = int("".join(c for c in tl if c.isdigit()))
+                br_col_str = "".join(c for c in br if c.isalpha())
+                br_row = int("".join(c for c in br if c.isdigit()))
+
+                tl_col = column_index_from_string(tl_col_str)
+                br_col = column_index_from_string(br_col_str)
+
+                if tl_row <= br_row and tl_col <= br_col:
+                    refined.append((tl_row, tl_col, br_row, br_col))
+                else:
+                    logger.warning("Skipping invalid refined region: %s to %s", tl, br)
+            except Exception as exc:
+                logger.warning("Skipping unparseable refined region %s: %s", item, exc)
+
+        if not refined:
+            logger.warning("LLM region refinement returned no valid regions — using heuristic regions")
+            return heuristic_regions
+
+        logger.info(
+            "  Region refinement: %d heuristic → %d refined",
+            len(heuristic_regions),
+            len(refined),
+        )
+        return refined
+
+    # ------------------------------------------------------------------
     # 3.  Build RegionData from bounds
     # ------------------------------------------------------------------
 
@@ -465,10 +537,15 @@ class SheetExtractor:
 
         grid = self._build_grid(all_cells)
 
-        # Step 2: Split into candidate regions
+        # Step 2: Heuristic split into candidate regions (whitespace gaps)
         region_bounds = self._split_into_regions(
             grid, min_row, min_col, max_row, max_col
         )
+
+        # Step 2b: If AI is enabled, refine regions with LLM to split
+        # adjacent blocks that have no whitespace gap between them.
+        if DETECTION_TYPE in ("ai", "heuristic_then_ai") and region_bounds:
+            region_bounds = self._refine_regions_with_ai(all_cells, region_bounds)
 
         # Step 3 + 4: For each region, run detection chain
         blocks: List[Block] = []
