@@ -29,6 +29,7 @@ from dto.output import SheetResult, WorkbookResult
 from extractors.sheet import SheetExtractor
 from grouping import group_blocks_into_chunks
 from utils.html import render_table_html
+from utils.row_groups import detect_row_groups
 
 dotenv.load_dotenv()
 
@@ -46,16 +47,31 @@ logger = logging.getLogger(__name__)
 
 def _enrich_blocks(blocks: list[Block]) -> list[Block]:
     """
-    Apply any post-processing enrichment to blocks before serialisation.
-    Currently: render HTML for table blocks.
+    Apply post-processing enrichment to blocks before serialisation.
+      - Render HTML for table blocks
+      - Detect row groupings within table blocks
     """
     for block in blocks:
-        if isinstance(block, TableBlock) and not block.html:
-            block.html = render_table_html(
-                heading=block.heading,
-                data=block.data,
-                footer=block.footer,
-            )
+        if isinstance(block, TableBlock):
+            if not block.html:
+                block.html = render_table_html(
+                    heading=block.heading,
+                    data=block.data,
+                    footer=block.footer,
+                )
+            # Detect hierarchical row groupings (only for tables that
+            # look like they might have groups; no-op for flat tables).
+
+            # This is not working as expected, we need to visit this later.
+            # if not block.row_groups:
+            #     try:
+            #         detect_row_groups(block)
+            #     except Exception:
+            #         logger.warning(
+            #             "Row group detection failed for table %s",
+            #             block.bounding_box.top_left,
+            #             exc_info=True,
+            #         )
     return blocks
 
 
@@ -137,6 +153,8 @@ def parse_workbook(file_path: str) -> WorkbookResult:
 
     for sheet_name in workbook.sheetnames:
         logger.info("Processing sheet: %s", sheet_name)
+        if sheet_name != "Sheet_3":
+            continue
         ws = workbook[sheet_name]
 
         try:

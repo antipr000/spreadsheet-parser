@@ -38,6 +38,14 @@ class HeadingBlock(BaseModel):
     cells: List[CellData] = []
 
 
+class RowGroup(BaseModel):
+    """A group of rows within a table, forming a hierarchy."""
+    label: str
+    label_cell: CellData
+    data_rows: List[CellData] = []
+    children: List["RowGroup"] = []
+
+
 class TableBlock(BaseModel):
     block_type: Literal["table"] = "table"
     bounding_box: BoundingBox
@@ -47,6 +55,7 @@ class TableBlock(BaseModel):
     footer: List[CellData] = []
     html: str = ""
     cells: List[CellData] = []
+    row_groups: List[RowGroup] = []
 
 
 class KeyValueBlock(BaseModel):

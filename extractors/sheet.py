@@ -58,7 +58,11 @@ def _color_hex(color_obj) -> Optional[str]:
     if color_obj is None:
         return None
     try:
-        if color_obj.type == "rgb" and color_obj.rgb and str(color_obj.rgb) != "00000000":
+        if (
+            color_obj.type == "rgb"
+            and color_obj.rgb
+            and str(color_obj.rgb) != "00000000"
+        ):
             rgb = str(color_obj.rgb)
             return f"#{rgb[-6:]}" if len(rgb) >= 6 else None
         if color_obj.type == "theme":
@@ -375,7 +379,94 @@ class SheetExtractor:
                 )
                 if has_data:
                     regions.append((r_start, c_start, r_end, c_end))
+
+        # Post-process: merge narrow label-column regions with their
+        # adjacent wider regions.  A common pattern is a label column (B)
+        # separated from the data columns (D–CR) by an empty column (C).
+        # The narrow region is likely the row labels for the wider table.
+        regions = self._merge_adjacent_narrow_regions(regions)
         return regions
+
+    @staticmethod
+    def _merge_adjacent_narrow_regions(
+        regions: List[Tuple[int, int, int, int]],
+    ) -> List[Tuple[int, int, int, int]]:
+        """
+        Merge narrow regions (≤ 2 columns) with adjacent wider regions
+        that share overlapping row ranges.
+
+        A narrow region to the left of a wide region (with a small column
+        gap between them) is likely a label column for that table.
+        """
+        if len(regions) < 2:
+            return regions
+
+        # Maximum column gap to consider regions "adjacent"
+        _MAX_COL_GAP = 3
+
+        # Separate narrow and wide regions
+        narrow: List[Tuple[int, int, int, int]] = []
+        wide: List[Tuple[int, int, int, int]] = []
+        for reg in regions:
+            r_min, c_min, r_max, c_max = reg
+            if c_max - c_min + 1 <= 2:
+                narrow.append(reg)
+            else:
+                wide.append(reg)
+
+        if not narrow:
+            return regions
+
+        merged_wide: List[Tuple[int, int, int, int]] = list(wide)
+        consumed_narrow: set = set()
+
+        for ni, (nr_min, nc_min, nr_max, nc_max) in enumerate(narrow):
+            best_match = -1
+            best_gap = _MAX_COL_GAP + 1
+
+            for wi, (wr_min, wc_min, wr_max, wc_max) in enumerate(merged_wide):
+                # Row ranges must overlap substantially
+                row_overlap_start = max(nr_min, wr_min)
+                row_overlap_end = min(nr_max, wr_max)
+                if row_overlap_end < row_overlap_start:
+                    continue
+                row_overlap = row_overlap_end - row_overlap_start + 1
+                narrow_rows = nr_max - nr_min + 1
+                if row_overlap < narrow_rows * 0.7:
+                    continue
+
+                # Column gap must be small
+                if nc_max < wc_min:
+                    gap = wc_min - nc_max - 1
+                elif wc_max < nc_min:
+                    gap = nc_min - wc_max - 1
+                else:
+                    gap = 0  # overlapping columns
+
+                if gap <= _MAX_COL_GAP and gap < best_gap:
+                    best_gap = gap
+                    best_match = wi
+
+            if best_match >= 0:
+                # Merge: expand the wide region to include the narrow one
+                wr_min, wc_min, wr_max, wc_max = merged_wide[best_match]
+                merged_wide[best_match] = (
+                    min(nr_min, wr_min),
+                    min(nc_min, wc_min),
+                    max(nr_max, wr_max),
+                    max(nc_max, wc_max),
+                )
+                consumed_narrow.add(ni)
+
+        # Combine: merged wide regions + unconsumed narrow regions
+        result = merged_wide[:]
+        for ni, reg in enumerate(narrow):
+            if ni not in consumed_narrow:
+                result.append(reg)
+
+        # Sort by (row, col) for consistent ordering
+        result.sort(key=lambda r: (r[0], r[1]))
+        return result
 
     # ------------------------------------------------------------------
     # 2b. LLM-based region refinement  (per-region, not whole-sheet)
@@ -624,8 +715,7 @@ class SheetExtractor:
 
         # Step 2b: If AI is enabled, refine regions with LLM to split
         # adjacent blocks that have no whitespace gap between them.
-        if DETECTION_TYPE in ("ai", "heuristic_then_ai") and region_bounds:
-            region_bounds = self._refine_regions_with_ai(grid, region_bounds)
+        region_bounds = self._refine_regions_with_ai(grid, region_bounds)
 
         # Step 3 + 4: For each region, run detection chain
         blocks: List[Block] = []
