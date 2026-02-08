@@ -155,28 +155,78 @@ class TableDetector(Detector):
         if len(occupied_cols) < 2:
             return None
 
-        # Try to identify header row(s): bold or background-coloured
-        header_rows: List[int] = []
-        body_rows: List[int] = []
+        # Identify header rows by formatting.
+        #
+        # Strategy: Collect formatting stats for each row, then find the
+        # longest prefix of rows at the top that look "header-like" by
+        # bold ratio OR distinct background color from the majority of rows.
+        _BOLD_THRESHOLD = 0.7
 
+        # Collect per-row formatting stats
+        row_stats: List[dict] = []  # [{row, cells, bold_ratio, dominant_bg}]
         for r in range(region.min_row, region.max_row + 1):
             row_cells = [
                 cd
-                for cd in (region.cell_at(r, c) for c in range(region.min_col, region.max_col + 1))
+                for cd in (
+                    region.cell_at(r, c)
+                    for c in range(region.min_col, region.max_col + 1)
+                )
                 if cd is not None and cd.value is not None
             ]
             if not row_cells:
                 continue
 
-            is_header_row = (
-                all(c.font_bold for c in row_cells)
-                or all(c.background_color is not None for c in row_cells)
+            bold_ratio = sum(1 for c in row_cells if c.font_bold) / len(row_cells)
+
+            # Find the most common background color in this row
+            bg_counts: dict = {}
+            for c in row_cells:
+                bg = c.background_color or "none"
+                bg_counts[bg] = bg_counts.get(bg, 0) + 1
+            dominant_bg = max(bg_counts, key=bg_counts.get) if bg_counts else "none"
+
+            row_stats.append(
+                {
+                    "row": r,
+                    "cells": row_cells,
+                    "bold_ratio": bold_ratio,
+                    "dominant_bg": dominant_bg,
+                }
             )
-            if is_header_row and not body_rows:
-                # Only rows before the first body row can be headers
-                header_rows.append(r)
+
+        if not row_stats:
+            return None
+
+        # Find the dominant bg color of the majority of rows (likely body).
+        # We use the lower half of rows as the body reference.
+        mid = max(1, len(row_stats) // 2)
+        body_bg_counts: dict = {}
+        for rs in row_stats[mid:]:
+            body_bg_counts[rs["dominant_bg"]] = (
+                body_bg_counts.get(rs["dominant_bg"], 0) + 1
+            )
+        typical_body_bg = (
+            max(body_bg_counts, key=body_bg_counts.get) if body_bg_counts else "none"
+        )
+
+        # Walk rows from the top. A row is a header candidate if:
+        #   (a) ≥70% of its cells are bold, OR
+        #   (b) it has a distinct background color from the typical body rows
+        # Headers must be a contiguous prefix — stop at the first body row.
+        header_rows: List[int] = []
+        body_rows: List[int] = []
+
+        for rs in row_stats:
+            is_bold_header = rs["bold_ratio"] >= _BOLD_THRESHOLD
+            has_distinct_bg = (
+                rs["dominant_bg"] != "none" and rs["dominant_bg"] != typical_body_bg
+            )
+            is_header_candidate = is_bold_header or has_distinct_bg
+
+            if is_header_candidate and not body_rows:
+                header_rows.append(rs["row"])
             else:
-                body_rows.append(r)
+                body_rows.append(rs["row"])
 
         # A table without any body rows isn't a table
         if not body_rows:
@@ -285,8 +335,12 @@ class TableDetector(Detector):
             return False
 
         # No row overlap between sections
-        all_rows = set(schema.header_rows) | set(schema.body_rows) | set(schema.footer_rows)
-        total = len(schema.header_rows) + len(schema.body_rows) + len(schema.footer_rows)
+        all_rows = (
+            set(schema.header_rows) | set(schema.body_rows) | set(schema.footer_rows)
+        )
+        total = (
+            len(schema.header_rows) + len(schema.body_rows) + len(schema.footer_rows)
+        )
         if len(all_rows) < total:
             return False
 

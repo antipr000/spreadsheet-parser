@@ -54,15 +54,33 @@ def _coord(col: int, row: int) -> str:
 
 
 def _color_hex(color_obj) -> Optional[str]:
-    """Best-effort extraction of an RGB hex string from an openpyxl color."""
+    """Best-effort extraction of a color string from an openpyxl color."""
     if color_obj is None:
         return None
-    if color_obj.type == "rgb" and color_obj.rgb and str(color_obj.rgb) != "00000000":
-        rgb = str(color_obj.rgb)
-        return f"#{rgb[-6:]}" if len(rgb) >= 6 else None
-    if color_obj.type == "theme":
-        return f"theme:{color_obj.theme}"
+    try:
+        if color_obj.type == "rgb" and color_obj.rgb and str(color_obj.rgb) != "00000000":
+            rgb = str(color_obj.rgb)
+            return f"#{rgb[-6:]}" if len(rgb) >= 6 else None
+        if color_obj.type == "theme":
+            return f"theme:{color_obj.theme}"
+        if color_obj.type == "indexed":
+            idx = color_obj.indexed
+            if idx is not None and idx != 64:  # 64 = default/auto
+                return f"indexed:{idx}"
+    except Exception:
+        pass
     return None
+
+
+def _has_fill(fill) -> bool:
+    """Return True if the cell fill represents a visible background color."""
+    if fill is None:
+        return False
+    # A solid pattern fill always means a background color is present,
+    # regardless of how the color value is encoded (rgb, theme, indexed).
+    if fill.patternType and fill.patternType != "none":
+        return True
+    return False
 
 
 # =====================================================================
@@ -205,6 +223,10 @@ class SheetExtractor:
         bg_color: Optional[str] = None
         if fill and fill.fgColor:
             bg_color = _color_hex(fill.fgColor)
+        # Fallback: if _color_hex couldn't decode the color encoding but the
+        # cell has a visible fill pattern, record it so header detection works.
+        if bg_color is None and _has_fill(fill):
+            bg_color = f"fill:{fill.patternType}"
 
         font_color: Optional[str] = None
         if font and font.color:
@@ -356,73 +378,124 @@ class SheetExtractor:
         return regions
 
     # ------------------------------------------------------------------
-    # 2b. LLM-based region refinement
+    # 2b. LLM-based region refinement  (per-region, not whole-sheet)
     # ------------------------------------------------------------------
+
+    # Regions with fewer rows than this are unlikely to contain multiple
+    # stacked blocks — skip LLM refinement for them.
+    _MIN_ROWS_FOR_REFINEMENT = 2
 
     def _refine_regions_with_ai(
         self,
-        all_cells: List[CellData],
+        grid: Dict[Tuple[int, int], CellData],
         heuristic_regions: List[Tuple[int, int, int, int]],
     ) -> List[Tuple[int, int, int, int]]:
         """
-        Send the full sheet cell data plus the heuristic region boundaries
-        to the LLM and ask it to refine — splitting regions that contain
-        multiple adjacent blocks without gaps.
+        For each heuristic region that is large enough to potentially
+        contain multiple stacked blocks, ask the LLM whether it should
+        be split further.
+
+        Only the cells within each region are sent to the LLM, keeping
+        prompts small.  Small regions are kept as-is without any LLM call.
 
         Returns a refined list of (min_row, min_col, max_row, max_col).
-        Falls back to the heuristic regions on any failure.
         """
-        # Build A1-notation bounding boxes for the prompt
-        heuristic_boxes = [
-            (_coord(c_min, r_min), _coord(c_max, r_max))
-            for r_min, c_min, r_max, c_max in heuristic_regions
-        ]
-
-        prompt = get_region_refinement_prompt(all_cells, heuristic_boxes)
         ai = get_decision_service()
-
-        try:
-            raw = ai.get_decision(prompt)
-        except Exception:
-            logger.warning(
-                "LLM region refinement call failed — using heuristic regions",
-                exc_info=True,
-            )
-            return heuristic_regions
-
-        parsed = parse_llm_json(raw)
-        if not isinstance(parsed, list):
-            logger.warning(
-                "LLM region refinement did not return a JSON array — using heuristic regions"
-            )
-            return heuristic_regions
-
         refined: List[Tuple[int, int, int, int]] = []
-        for item in parsed:
+
+        for r_min, c_min, r_max, c_max in heuristic_regions:
+            num_rows = r_max - r_min + 1
+
+            # Skip small regions — almost certainly a single block.
+            if num_rows < self._MIN_ROWS_FOR_REFINEMENT:
+                refined.append((r_min, c_min, r_max, c_max))
+                continue
+
+            # Collect only non-empty cells in this region
+            region_cells = [
+                cd
+                for r in range(r_min, r_max + 1)
+                for c in range(c_min, c_max + 1)
+                if (cd := grid.get((r, c))) is not None and cd.value is not None
+            ]
+
+            if not region_cells:
+                refined.append((r_min, c_min, r_max, c_max))
+                continue
+
+            tl = _coord(c_min, r_min)
+            br = _coord(c_max, r_max)
+
+            prompt = get_region_refinement_prompt(region_cells, tl, br)
+
             try:
-                tl = item.get("top_left", "")
-                br = item.get("bottom_right", "")
+                raw = ai.get_decision(prompt)
+            except Exception:
+                logger.warning(
+                    "LLM refinement failed for region %s:%s — keeping as-is",
+                    tl,
+                    br,
+                    exc_info=True,
+                )
+                refined.append((r_min, c_min, r_max, c_max))
+                continue
 
-                tl_col_str = "".join(c for c in tl if c.isalpha())
-                tl_row = int("".join(c for c in tl if c.isdigit()))
-                br_col_str = "".join(c for c in br if c.isalpha())
-                br_row = int("".join(c for c in br if c.isdigit()))
+            parsed = parse_llm_json(raw)
+            if not isinstance(parsed, dict):
+                logger.warning(
+                    "LLM refinement returned non-object for %s:%s — keeping as-is",
+                    tl,
+                    br,
+                )
+                refined.append((r_min, c_min, r_max, c_max))
+                continue
 
-                tl_col = column_index_from_string(tl_col_str)
-                br_col = column_index_from_string(br_col_str)
+            if not parsed.get("split", False):
+                # LLM says no split needed
+                refined.append((r_min, c_min, r_max, c_max))
+                continue
 
-                if tl_row <= br_row and tl_col <= br_col:
-                    refined.append((tl_row, tl_col, br_row, br_col))
-                else:
-                    logger.warning("Skipping invalid refined region: %s to %s", tl, br)
-            except Exception as exc:
-                logger.warning("Skipping unparseable refined region %s: %s", item, exc)
+            # Parse the sub-regions
+            sub_regions = parsed.get("regions", [])
+            if not sub_regions:
+                refined.append((r_min, c_min, r_max, c_max))
+                continue
 
-        if not refined:
-            logger.warning(
-                "LLM region refinement returned no valid regions — using heuristic regions"
-            )
-            return heuristic_regions
+            valid_subs: List[Tuple[int, int, int, int]] = []
+            for item in sub_regions:
+                try:
+                    sub_tl = item.get("top_left", "")
+                    sub_br = item.get("bottom_right", "")
+
+                    tl_col_str = "".join(ch for ch in sub_tl if ch.isalpha())
+                    tl_row = int("".join(ch for ch in sub_tl if ch.isdigit()))
+                    br_col_str = "".join(ch for ch in sub_br if ch.isalpha())
+                    br_row = int("".join(ch for ch in sub_br if ch.isdigit()))
+
+                    tl_col = column_index_from_string(tl_col_str)
+                    br_col = column_index_from_string(br_col_str)
+
+                    if tl_row <= br_row and tl_col <= br_col:
+                        valid_subs.append((tl_row, tl_col, br_row, br_col))
+                    else:
+                        logger.warning(
+                            "Skipping invalid sub-region: %s to %s",
+                            sub_tl,
+                            sub_br,
+                        )
+                except Exception as exc:
+                    logger.warning("Skipping unparseable sub-region %s: %s", item, exc)
+
+            if valid_subs:
+                logger.info(
+                    "  Region %s:%s split into %d sub-regions",
+                    tl,
+                    br,
+                    len(valid_subs),
+                )
+                refined.extend(valid_subs)
+            else:
+                refined.append((r_min, c_min, r_max, c_max))
 
         logger.info(
             "  Region refinement: %d heuristic → %d refined",
@@ -549,9 +622,10 @@ class SheetExtractor:
             grid, min_row, min_col, max_row, max_col
         )
 
-        # Step 2b: Refine regions with LLM to split
+        # Step 2b: If AI is enabled, refine regions with LLM to split
         # adjacent blocks that have no whitespace gap between them.
-        region_bounds = self._refine_regions_with_ai(all_cells, region_bounds)
+        if DETECTION_TYPE in ("ai", "heuristic_then_ai") and region_bounds:
+            region_bounds = self._refine_regions_with_ai(grid, region_bounds)
 
         # Step 3 + 4: For each region, run detection chain
         blocks: List[Block] = []

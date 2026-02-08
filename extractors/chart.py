@@ -8,6 +8,8 @@ Also provides ``extract_blocks()`` which wraps each ``ChartData`` in a
 ``ChartBlock`` for use by the orchestrator.
 """
 
+import logging
+
 from openpyxl import Workbook
 from openpyxl.worksheet.worksheet import Worksheet
 from openpyxl.utils.cell import range_boundaries, get_column_letter
@@ -15,6 +17,8 @@ from dto.chart_data import ChartData, ChartSeries, DataRange
 from dto.blocks import ChartBlock
 from dto.coordinate import BoundingBox
 from typing import Any, List, Optional
+
+logger = logging.getLogger(__name__)
 
 
 class ChartExtractor:
@@ -164,6 +168,8 @@ class ChartExtractor:
         """
         sheet_part, rng = formula.split("!")
         sheet_name = sheet_part.strip("'")
+        if sheet_name not in wb.sheetnames:
+            return []
         ws = wb[sheet_name]
         min_col, min_row, max_col, max_row = range_boundaries(rng.replace("$", ""))
         out = []
@@ -253,21 +259,28 @@ class ChartExtractor:
         charts: List[ChartData] = []
 
         for ch in getattr(sheet, "_charts", []):
-            categories, category_range = self._extract_categories(ch, wb)
-            all_series = self._extract_all_series(ch, wb)
+            try:
+                categories, category_range = self._extract_categories(ch, wb)
+                all_series = self._extract_all_series(ch, wb)
 
-            charts.append(
-                ChartData(
-                    title=self._extract_title(ch.title),
-                    x_axis=self._extract_axis_title(ch, "x_axis"),
-                    y_axis=self._extract_axis_title(ch, "y_axis"),
-                    bounding_box=self._extract_bounding_box(ch),
-                    chart_type=self._extract_chart_type(ch),
-                    categories=categories,
-                    category_range=category_range,
-                    series=all_series,
+                charts.append(
+                    ChartData(
+                        title=self._extract_title(ch.title),
+                        x_axis=self._extract_axis_title(ch, "x_axis"),
+                        y_axis=self._extract_axis_title(ch, "y_axis"),
+                        bounding_box=self._extract_bounding_box(ch),
+                        chart_type=self._extract_chart_type(ch),
+                        categories=categories,
+                        category_range=category_range,
+                        series=all_series,
+                    )
                 )
-            )
+            except Exception:
+                logger.warning(
+                    "Failed to extract chart (title=%r) — skipping",
+                    self._extract_title(getattr(ch, "title", None)),
+                    exc_info=True,
+                )
 
         return charts
 
