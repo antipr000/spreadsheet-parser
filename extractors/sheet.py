@@ -384,12 +384,17 @@ class SheetExtractor:
         try:
             raw = ai.get_decision(prompt)
         except Exception:
-            logger.warning("LLM region refinement call failed — using heuristic regions", exc_info=True)
+            logger.warning(
+                "LLM region refinement call failed — using heuristic regions",
+                exc_info=True,
+            )
             return heuristic_regions
 
         parsed = parse_llm_json(raw)
         if not isinstance(parsed, list):
-            logger.warning("LLM region refinement did not return a JSON array — using heuristic regions")
+            logger.warning(
+                "LLM region refinement did not return a JSON array — using heuristic regions"
+            )
             return heuristic_regions
 
         refined: List[Tuple[int, int, int, int]] = []
@@ -414,7 +419,9 @@ class SheetExtractor:
                 logger.warning("Skipping unparseable refined region %s: %s", item, exc)
 
         if not refined:
-            logger.warning("LLM region refinement returned no valid regions — using heuristic regions")
+            logger.warning(
+                "LLM region refinement returned no valid regions — using heuristic regions"
+            )
             return heuristic_regions
 
         logger.info(
@@ -542,10 +549,9 @@ class SheetExtractor:
             grid, min_row, min_col, max_row, max_col
         )
 
-        # Step 2b: If AI is enabled, refine regions with LLM to split
+        # Step 2b: Refine regions with LLM to split
         # adjacent blocks that have no whitespace gap between them.
-        if DETECTION_TYPE in ("ai", "heuristic_then_ai") and region_bounds:
-            region_bounds = self._refine_regions_with_ai(all_cells, region_bounds)
+        region_bounds = self._refine_regions_with_ai(all_cells, region_bounds)
 
         # Step 3 + 4: For each region, run detection chain
         blocks: List[Block] = []

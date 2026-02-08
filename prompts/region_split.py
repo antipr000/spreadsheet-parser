@@ -38,8 +38,7 @@ def get_region_refinement_prompt(
 
     # Format heuristic regions
     regions_block = "\n".join(
-        f"  - Region {i}: {tl} to {br}"
-        for i, (tl, br) in enumerate(heuristic_regions)
+        f"  - Region {i}: {tl} to {br}" for i, (tl, br) in enumerate(heuristic_regions)
     )
 
     return f"""You are an expert spreadsheet analyst. You are given:

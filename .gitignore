@@ -37,13 +37,3 @@ htmlcov/
 # Jupyter
 .ipynb_checkpoints/
 
-
-# Excel files
-*.xlsx
-*.xls
-*.xlsm
-*.xlsb
-*.xlsm
-*.xlsb
-*.xlsm
-*.xlsb
