@@ -136,8 +136,6 @@ def parse_workbook(file_path: str) -> WorkbookResult:
     sheet_results: list[SheetResult] = []
 
     for sheet_name in workbook.sheetnames:
-        if sheet_name != "Sheet_2":
-            continue
         logger.info("Processing sheet: %s", sheet_name)
         ws = workbook[sheet_name]
 
