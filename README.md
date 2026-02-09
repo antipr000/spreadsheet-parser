@@ -84,7 +84,7 @@ Excel file
 ### Core idea
 We will follow a 2 pass approach for agentic system - planning and orchestration
 
-1. **Planning**: During planning phase, we are interested in a plan on how to parse the worksheet. The planner summarizes the sheet, also generates a screenshot and passes it to a multimodal LLM to generate a plan. 
+1. **Planning**: During planning phase, we are interested in a plan on how to parse the worksheet. The planner summarizes the sheet and passes it to an LLM
 2. **Orchestration**: From the plan generated, we orchestrate on the plan to generate the final json. For extraction, we have *extractors* defined, which can be either AI based, or simple deterministic logic.
 
 ```mermaid
@@ -110,9 +110,7 @@ flowchart TD
     end
 
     LOOP --> READCELLS
-    READCELLS --> SCREENSHOT
     READCELLS --> SUMMARIZE
-    SCREENSHOT --> LLM1
     SUMMARIZE --> PROMPT --> LLM1
     LLM1 --> PARSE
 
