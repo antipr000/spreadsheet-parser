@@ -16,6 +16,8 @@ class AIService(ABC):
         ...
 
     @abstractmethod
-    def get_decision_for_media(self, prompt: str, image_bytes: bytes, mime_type: str = "image/png") -> str:
+    def get_decision_for_media(
+        self, prompt: str, image_bytes: bytes, mime_type: str = "image/png"
+    ) -> str:
         """Send an image together with a text prompt and return the LLM response."""
         ...

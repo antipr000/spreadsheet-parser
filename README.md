@@ -103,10 +103,9 @@ flowchart TD
 
     subgraph phase1 ["Phase 1: PlannerAgent (planner.py)"]
         READCELLS["Read All Cells + Build Grid\n(cell_reader.py)"]
-        SCREENSHOT["Render Sheet Screenshot\n(screenshot.py)\nLibreOffice headless or PIL fallback"]
         SUMMARIZE["Summarize Sheet\n(summarizer.py)\n13K cells → ~5K tokens"]
         PROMPT["Build Planner Prompt\n(prompts/planner.py)\nBlock types + structural hints"]
-        LLM1["Multimodal LLM Call\nScreenshot + Summary Text\n(ai/factory.py → OpenAI or Gemini)"]
+        LLM1["LLM Call\nSummary Text\n(ai/factory.py → OpenAI or Gemini or Claude)"]
         PARSE["Parse LLM Response → List of PlannedBlock\nEach has: type, bounding_box, table_hints"]
     end
 

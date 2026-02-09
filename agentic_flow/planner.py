@@ -1,8 +1,8 @@
 """
 Phase 1 — Planning Agent.
 
-Sends a multimodal request (screenshot + structural summary) to the
-LLM and parses the response into a list of PlannedBlock objects.
+Sends the structural summary of the worksheet to the LLM and parses
+the response into a list of PlannedBlock objects.
 """
 
 from __future__ import annotations
@@ -13,19 +13,13 @@ from typing import Any, Dict, List, Optional, Tuple
 from openpyxl import Workbook
 from openpyxl.worksheet.worksheet import Worksheet
 
-from ai.factory import get_decision_service, get_decision_for_media_service
+from ai.factory import get_decision_service
 from ai.response_parser import parse_llm_json
-from dto.cell_data import CellData
 from dto.coordinate import BoundingBox
 
-from agentic_flow.cell_reader import (
-    read_all_cells,
-    build_grid,
-    build_merge_map,
-)
+from agentic_flow.cell_reader import read_all_cells, build_grid
 from agentic_flow.dto.plan import PlannedBlock, TableHints
 from agentic_flow.prompts.planner import get_planner_prompt
-from agentic_flow.screenshot import render_sheet_screenshot
 from agentic_flow.summarizer import summarise_sheet
 
 logger = logging.getLogger(__name__)
@@ -69,26 +63,15 @@ class PlannerAgent:
             len(summary) // 4,
         )
 
-        # 3. Build prompt
+        # 3. Build prompt (structural summary is embedded in the prompt)
         prompt = get_planner_prompt(summary)
 
-        # 4. Render screenshot
-        screenshot = render_sheet_screenshot(xlsx_path, sheet_name)
+        # 4. Call LLM — text-only (the summary has all the structural info)
+        logger.info("  [Planner] Sending text prompt (%d chars)", len(prompt))
+        ai = get_decision_service()
+        raw_response = ai.get_decision(prompt)
 
-        # 5. Call LLM (multimodal if screenshot available, text-only otherwise)
-        raw_response: str
-        if screenshot is not None:
-            logger.info("  [Planner] Sending multimodal request (screenshot + text)")
-            ai = get_decision_for_media_service()
-            raw_response = ai.get_decision_for_media(
-                prompt, screenshot, mime_type="image/png"
-            )
-        else:
-            logger.info("  [Planner] Sending text-only request (no screenshot)")
-            ai = get_decision_service()
-            raw_response = ai.get_decision(prompt)
-
-        # 6. Parse response
+        # 5. Parse response
         parsed = parse_llm_json(raw_response)
         if parsed is None:
             logger.warning("  [Planner] Failed to parse LLM response")
@@ -103,7 +86,7 @@ class PlannerAgent:
             logger.warning("  [Planner] Unexpected response type: %s", type(parsed))
             return []
 
-        # 7. Convert to PlannedBlock DTOs
+        # 6. Convert to PlannedBlock DTOs
         planned: List[PlannedBlock] = []
         for i, item in enumerate(blocks_raw):
             try:

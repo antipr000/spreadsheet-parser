@@ -33,7 +33,6 @@ class BaseExtractor(ABC):
         wb: Workbook,
         *,
         computed_values: Optional[Dict[Tuple[str, str], Any]] = None,
-        screenshot_bytes: Optional[bytes] = None,
     ) -> List[Block]:
         """
         Extract structured block(s) from the region described by *planned*.
@@ -45,7 +44,6 @@ class BaseExtractor(ABC):
             ws: The openpyxl Worksheet.
             wb: The openpyxl Workbook.
             computed_values: Pre-calculated formula values.
-            screenshot_bytes: Full-sheet screenshot PNG bytes (for vision).
 
         Returns:
             A list of Block DTOs (usually one, but may be more if the

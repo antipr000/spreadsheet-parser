@@ -30,7 +30,6 @@ class TextExtractor(BaseExtractor):
         wb: Workbook,
         *,
         computed_values: Optional[Dict[Tuple[str, str], Any]] = None,
-        screenshot_bytes: Optional[bytes] = None,
     ) -> List[Block]:
         bbox = planned.bounding_box
         r_min, c_min = parse_coord(bbox.top_left)

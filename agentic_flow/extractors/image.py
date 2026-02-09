@@ -1,6 +1,6 @@
 """
 Image Extractor — extracts embedded images from the worksheet and
-sends them to a vision model for description.
+sends the raw image bytes (PNG/JPEG) to the LLM for description.
 """
 
 from __future__ import annotations
@@ -33,11 +33,10 @@ class ImageExtractor(BaseExtractor):
         wb: Workbook,
         *,
         computed_values: Optional[Dict[Tuple[str, str], Any]] = None,
-        screenshot_bytes: Optional[bytes] = None,
     ) -> List[Block]:
         blocks: List[Block] = []
 
-        # Try to extract embedded images from the worksheet
+        # Extract embedded images from the worksheet
         images = getattr(ws, "_images", [])
         for img in images:
             description = self._describe_image(img)
@@ -48,16 +47,12 @@ class ImageExtractor(BaseExtractor):
                 )
             )
 
-        # If no images found but the planner identified an image block,
-        # try using the full screenshot for description
+        # If no images found, use the planner's description
         if not blocks:
-            description = None
-            if screenshot_bytes:
-                description = self._describe_from_screenshot(screenshot_bytes)
             blocks.append(
                 ImageBlock(
                     bounding_box=planned.bounding_box,
-                    description=description or planned.description or "Embedded image",
+                    description=planned.description or "Embedded image",
                 )
             )
 
@@ -66,23 +61,28 @@ class ImageExtractor(BaseExtractor):
     @staticmethod
     def _describe_image(img) -> Optional[str]:
         """
-        Extract image bytes from an openpyxl Image and send to
-        vision model.
+        Extract image bytes from an openpyxl Image and send to the
+        vision model.  Raw image bytes (PNG/JPEG/GIF) are supported
+        by all providers.
         """
         try:
-            # openpyxl Image stores data in _data or ref attribute
-            img_data = getattr(img, "_data", None)
-            if img_data is None:
-                ref = getattr(img, "ref", None)
-                if ref and hasattr(ref, "read"):
-                    img_data = ref.read()
+            img_data = None
+            if callable(getattr(img, "_data", None)):
+                img_data = img._data()
+            elif hasattr(img, "ref") and hasattr(img.ref, "read"):
+                img_data = img.ref.read()
 
-            if img_data is None:
+            if not img_data:
                 return None
 
-            # Determine MIME type
-            format_hint = getattr(img, "format", "png") or "png"
-            mime = f"image/{format_hint.lower()}"
+            # Determine MIME type from image header bytes
+            mime = "image/png"
+            if img_data[:3] == b"\xff\xd8\xff":
+                mime = "image/jpeg"
+            elif img_data[:4] == b"\x89PNG":
+                mime = "image/png"
+            elif img_data[:4] == b"GIF8":
+                mime = "image/gif"
 
             prompt = get_image_description_prompt()
             ai = get_decision_for_media_service()
@@ -90,20 +90,5 @@ class ImageExtractor(BaseExtractor):
         except Exception:
             logger.warning(
                 "  [ImageExtractor] Failed to describe image", exc_info=True
-            )
-            return None
-
-    @staticmethod
-    def _describe_from_screenshot(screenshot_bytes: bytes) -> Optional[str]:
-        """Use the full sheet screenshot as a fallback for image description."""
-        try:
-            prompt = get_image_description_prompt()
-            ai = get_decision_for_media_service()
-            return ai.get_decision_for_media(
-                prompt, screenshot_bytes, mime_type="image/png"
-            )
-        except Exception:
-            logger.warning(
-                "  [ImageExtractor] Screenshot description failed", exc_info=True
             )
             return None

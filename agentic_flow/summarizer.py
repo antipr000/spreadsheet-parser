@@ -246,11 +246,33 @@ def summarise_sheet(
     # --- Preamble ---
     tl = f"{get_column_letter(min_col)}{min_row}"
     br = f"{get_column_letter(max_col)}{max_row}"
-    sections.append(
+
+    n_charts = len(getattr(ws, "_charts", []))
+    n_images = len(getattr(ws, "_images", []))
+
+    preamble = (
         f"Sheet: {ws.title} ({total_rows} rows x {total_cols} cols, {tl}:{br})\n"
         f"{non_empty_total} non-empty cells\n"
-        f"Charts: {len(getattr(ws, '_charts', []))}"
+        f"Charts: {n_charts}\n"
+        f"Embedded images: {n_images}"
     )
+
+    # Add image position info so the planner knows where they are
+    if n_images > 0:
+        img_lines: List[str] = []
+        for img in getattr(ws, "_images", []):
+            anchor = getattr(img, "anchor", None)
+            from_m = getattr(anchor, "_from", None) if anchor else None
+            if from_m is not None:
+                ic = int(from_m.col) + 1  # 0-based → 1-based
+                ir = int(from_m.row) + 1
+                img_coord = f"{get_column_letter(ic)}{ir}"
+                img_lines.append(f"  Image at {img_coord}")
+            else:
+                img_lines.append("  Image (position unknown)")
+        preamble += "\n" + "\n".join(img_lines)
+
+    sections.append(preamble)
 
     # --- Header rows (first N rows, sampled for wide sheets) ---
     header_limit = min(_MAX_HEADER_ROWS, total_rows)

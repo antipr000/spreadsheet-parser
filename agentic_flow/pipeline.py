@@ -7,6 +7,9 @@ Usage:
 Two-phase pipeline per sheet:
   1. PlannerAgent  — identifies blocks (type + bbox + hints) via LLM
   2. Orchestrator  — dispatches each block to a specialised extractor
+
+All LLM calls use the structural text summary — no spreadsheet files
+are sent to the model.
 """
 
 from __future__ import annotations
@@ -35,7 +38,6 @@ from agentic_flow.cell_reader import (
 )
 from agentic_flow.planner import PlannerAgent
 from agentic_flow.orchestrator import Orchestrator
-from agentic_flow.screenshot import render_sheet_screenshot
 
 dotenv.load_dotenv()
 
@@ -60,7 +62,6 @@ def _compute_formula_values(
 
     Aborts gracefully if computation exceeds *timeout_seconds*.
     """
-    import signal
     import threading
 
     computed: Dict[Tuple[str, str], Any] = {}
@@ -203,9 +204,6 @@ class AgenticPipeline:
                 grid = build_grid(all_cells)
                 merge_map = build_merge_map(ws)
 
-                # Render screenshot (for chart/image description)
-                screenshot = render_sheet_screenshot(file_path, sheet_name)
-
                 # Phase 2: Extract
                 blocks = self._orchestrator.extract_all(
                     plan=plan,
@@ -214,7 +212,6 @@ class AgenticPipeline:
                     ws=ws,
                     wb=workbook,
                     computed_values=computed_values,
-                    screenshot_bytes=screenshot,
                 )
 
                 # Post-process

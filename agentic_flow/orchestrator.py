@@ -54,7 +54,6 @@ class Orchestrator:
         wb: Workbook,
         *,
         computed_values: Optional[Dict[Tuple[str, str], Any]] = None,
-        screenshot_bytes: Optional[bytes] = None,
     ) -> List[Block]:
         """
         Run extraction for every planned block and return all Block
@@ -88,7 +87,6 @@ class Orchestrator:
                     ws=ws,
                     wb=wb,
                     computed_values=computed_values,
-                    screenshot_bytes=screenshot_bytes,
                 )
                 blocks.extend(result)
                 logger.info(
