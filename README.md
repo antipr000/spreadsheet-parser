@@ -5,16 +5,19 @@ A structure-aware Excel parser that reconstructs workbook content the way a huma
 ## Quick Start
 
 ```bash
-pip install openpyxl pydantic python-dotenv google-genai openai
+pip install -r requirements.txt
 
 # Basic usage
-python parser.py workbook.xlsx
+python parser.py workbook.xlsx  # For heuristic or heuristic + ai model
+python -m agentic_flow.pipeline workbook.xlsx  # For agentic flow
 
 # Custom output path
 python parser.py workbook.xlsx -o result.json
+python -m agentic_flow.pipeline workbook.xlsx -o result.json
 ```
 
 The output JSON file is written to `<input_name>_output.json` by default.
+
 
 ### Environment Variables
 
@@ -28,7 +31,7 @@ The output JSON file is written to `<input_name>_output.json` by default.
 
 Create a `.env` file in the project root with your API keys.
 
-## Pipeline Overview
+## Pipeline Overview (Heuristic system)
 
 ```
 Excel file
@@ -74,6 +77,99 @@ Excel file
                ▼
            output.json
 ```
+
+
+## Pipeline Overview (Agentic system)
+
+### Core idea
+We will follow a 2 pass approach for agentic system - planning and orchestration
+
+1. **Planning**: During planning phase, we are interested in a plan on how to parse the worksheet. The planner summarizes the sheet, also generates a screenshot and passes it to a multimodal LLM to generate a plan. 
+2. **Orchestration**: From the plan generated, we orchestrate on the plan to generate the final json. For extraction, we have *extractors* defined, which can be either AI based, or simple deterministic logic.
+
+```mermaid
+flowchart TD
+    subgraph input [Input]
+        XLSX["Excel Workbook (.xlsx)"]
+    end
+
+    subgraph pipeline ["AgenticPipeline (pipeline.py)"]
+        LOAD["Load Workbook (openpyxl)"]
+        FORMULA["Compute Formula Values (30s timeout)"]
+        LOOP["For each sheet..."]
+    end
+
+    XLSX --> LOAD --> FORMULA --> LOOP
+
+    subgraph phase1 ["Phase 1: PlannerAgent (planner.py)"]
+        READCELLS["Read All Cells + Build Grid\n(cell_reader.py)"]
+        SCREENSHOT["Render Sheet Screenshot\n(screenshot.py)\nLibreOffice headless or PIL fallback"]
+        SUMMARIZE["Summarize Sheet\n(summarizer.py)\n13K cells → ~5K tokens"]
+        PROMPT["Build Planner Prompt\n(prompts/planner.py)\nBlock types + structural hints"]
+        LLM1["Multimodal LLM Call\nScreenshot + Summary Text\n(ai/factory.py → OpenAI or Gemini)"]
+        PARSE["Parse LLM Response → List of PlannedBlock\nEach has: type, bounding_box, table_hints"]
+    end
+
+    LOOP --> READCELLS
+    READCELLS --> SCREENSHOT
+    READCELLS --> SUMMARIZE
+    SCREENSHOT --> LLM1
+    SUMMARIZE --> PROMPT --> LLM1
+    LLM1 --> PARSE
+
+    subgraph phase2 ["Phase 2: Orchestrator (orchestrator.py)"]
+        DISPATCH["For each PlannedBlock, dispatch by type"]
+    end
+
+    PARSE --> DISPATCH
+
+    subgraph extractors ["Specialized Extractors"]
+        HEAD["HeadingExtractor\n(no LLM)\nConcatenate cell text"]
+        TABLE["TableExtractor\n2-pass approach"]
+        KV["KeyValueExtractor\n(LLM identifies pairs)"]
+        TEXT["TextExtractor\n(no LLM)\nConcatenate in reading order"]
+        CHART["AgenticChartExtractor\nopenpyxl chart data +\nvision model description"]
+        IMAGE["ImageExtractor\nExtract embedded images +\nvision model description"]
+    end
+
+    DISPATCH -->|heading| HEAD
+    DISPATCH -->|table| TABLE
+    DISPATCH -->|key_value| KV
+    DISPATCH -->|text| TEXT
+    DISPATCH -->|chart| CHART
+    DISPATCH -->|image| IMAGE
+
+    subgraph tableDetail ["TableExtractor Detail (extractors/table.py)"]
+        PASS1["Pass 1: Structure Detection (LLM)\nSend: headers + sample rows +\nbold rows + merged ranges\n~2-4K tokens"]
+        PASS1_OUT["Receive: header_rows, footer_rows,\nrow_groups, column_groups,\nmerged_group_columns"]
+        PASS2["Pass 2: Programmatic Extraction\n(No LLM)\nRead cells from grid using\nstructure map"]
+        ROWGROUPS["Build RowGroup tree\nNest merged-group columns\nas children"]
+    end
+
+    TABLE --> PASS1 --> PASS1_OUT --> PASS2 --> ROWGROUPS
+
+    subgraph postprocess ["Post-Processing"]
+        ENRICH["Enrich Blocks\nRender HTML for tables\n(utils/html.py)"]
+        GROUP["Group Blocks into Chunks\nHeading + Content association\n(grouping.py)"]
+        SERIALIZE["Serialize to JSON\n(Pydantic model_dump_json)"]
+    end
+
+    HEAD --> ENRICH
+    ROWGROUPS --> ENRICH
+    KV --> ENRICH
+    TEXT --> ENRICH
+    CHART --> ENRICH
+    IMAGE --> ENRICH
+    ENRICH --> GROUP --> SERIALIZE
+
+    subgraph output [Output]
+        JSON["LLM-Ready JSON\nWorkbookResult → SheetResult → Chunks\nReading order + hierarchy preserved"]
+    end
+
+    SERIALIZE --> JSON
+```
+
+
 
 ## Key Design Decisions
 
