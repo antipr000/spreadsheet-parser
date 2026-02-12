@@ -5,14 +5,153 @@ The heuristic splitter only uses whitespace (empty rows / columns) as
 separators. This prompt asks the LLM to look at the actual cell contents
 within ONE heuristic region and decide whether it should be split into
 multiple sub-regions.
+
+For large regions the cell data is **sampled** (header rows, a few body
+rows, structural/bold rows, footer rows) so the prompt stays within
+token limits.
 """
 
 from __future__ import annotations
 
-from typing import List
+from typing import Dict, List, Set, Tuple
+
+from openpyxl.utils import column_index_from_string, get_column_letter
 
 from dto.cell_data import CellData
 from prompts.bounding_box import get_cell_data_prompt
+
+# ── Sampling configuration ──────────────────────────────────────────
+_MAX_HEADER_ROWS = 5
+_MAX_FOOTER_ROWS = 3
+_MAX_SAMPLE_BODY_ROWS = 8
+_MAX_COLS_FULL_DETAIL = 20
+_TARGET_CHARS = 20_000  # ~5K tokens
+_MAX_CELL_VALUE_LEN = 40
+
+
+def _parse_coord(coord: str) -> Tuple[int, int]:
+    """Parse 'E2' → (row=2, col=5)."""
+    col_str = "".join(c for c in coord if c.isalpha())
+    row_num = int("".join(c for c in coord if c.isdigit()) or "0")
+    col_num = column_index_from_string(col_str) if col_str else 0
+    return row_num, col_num
+
+
+def _compact_cell_prompt(cd: CellData) -> str:
+    """
+    Ultra-compact cell representation with truncated value.
+    """
+    parts = [f"[{cd.coordinate}]"]
+    if cd.value is not None:
+        val = str(cd.value)[:_MAX_CELL_VALUE_LEN]
+        parts.append(f'val="{val}"')
+    if cd.font_bold:
+        parts.append("bold")
+    if cd.merged_with:
+        parts.append(f"merged→{cd.merged_with}")
+    if cd.formula:
+        parts.append("formula")
+    if cd.background_color:
+        parts.append(f"bg={cd.background_color}")
+    return " | ".join(parts)
+
+
+def _sample_region_cells(region_cells: List[CellData]) -> str:
+    """
+    Build a sampled, compact representation of the region's cells.
+
+    For small regions (≤ 200 cells) all cells are included (with
+    truncated values).  For larger regions the strategy mirrors the
+    agentic summariser: header rows, sampled body rows, bold/structural
+    rows, and footer rows.
+    """
+    if not region_cells:
+        return "(empty region)"
+
+    # ── Small region: include everything (compact) ──────────────────
+    if len(region_cells) <= 200:
+        lines = [_compact_cell_prompt(c) for c in region_cells]
+        text = "\n".join(lines)
+        # Still enforce the target size
+        if len(text) <= _TARGET_CHARS:
+            return text
+
+    # ── Large region: sample ────────────────────────────────────────
+    # Build a grid keyed by (row, col)
+    grid: Dict[Tuple[int, int], CellData] = {}
+    rows_seen: Set[int] = set()
+    cols_seen: Set[int] = set()
+    for cd in region_cells:
+        r, c = _parse_coord(cd.coordinate)
+        grid[(r, c)] = cd
+        rows_seen.add(r)
+        cols_seen.add(c)
+
+    if not rows_seen:
+        return "(empty region)"
+
+    sorted_rows = sorted(rows_seen)
+    min_row, max_row = sorted_rows[0], sorted_rows[-1]
+    min_col = min(cols_seen)
+    max_col = max(cols_seen)
+    total_cols = max_col - min_col + 1
+
+    # Column sampling step for wide regions
+    col_step = max(1, total_cols // _MAX_COLS_FULL_DETAIL)
+
+    # Header rows (first N)
+    header_rows = sorted_rows[:_MAX_HEADER_ROWS]
+
+    # Footer rows (last N)
+    footer_rows = sorted_rows[-_MAX_FOOTER_ROWS:]
+
+    # Structural / bold rows (rows where all non-empty cells are bold)
+    structural_rows: List[int] = []
+    header_set = set(header_rows)
+    footer_set = set(footer_rows)
+    for r in sorted_rows:
+        if r in header_set or r in footer_set:
+            continue
+        row_cells = [grid[(r, c)] for c in range(min_col, max_col + 1, col_step)
+                     if (r, c) in grid and grid[(r, c)].value is not None]
+        if row_cells and all(cd.font_bold for cd in row_cells):
+            structural_rows.append(r)
+
+    # Sampled body rows (evenly spaced, excluding header/footer/structural)
+    excluded = header_set | footer_set | set(structural_rows)
+    body_rows = [r for r in sorted_rows if r not in excluded]
+    if body_rows:
+        step = max(1, len(body_rows) // _MAX_SAMPLE_BODY_ROWS)
+        sampled_body = body_rows[::step][:_MAX_SAMPLE_BODY_ROWS]
+    else:
+        sampled_body = []
+
+    # Assemble sections
+    sections: List[str] = []
+
+    def _format_rows(rows: List[int], label: str) -> None:
+        if not rows:
+            return
+        lines: List[str] = [f"--- {label} ---"]
+        for r in rows:
+            for c in range(min_col, max_col + 1, col_step):
+                cd = grid.get((r, c))
+                if cd and cd.value is not None:
+                    lines.append(_compact_cell_prompt(cd))
+        sections.append("\n".join(lines))
+
+    _format_rows(header_rows, f"HEADER ROWS ({len(header_rows)} of {len(sorted_rows)} total rows)")
+    _format_rows(structural_rows[:20], "STRUCTURAL / BOLD ROWS")
+    _format_rows(sampled_body, f"SAMPLED BODY ROWS ({len(sampled_body)} of {len(body_rows)} body rows)")
+    _format_rows(footer_rows, "FOOTER / LAST ROWS")
+
+    text = "\n".join(sections)
+
+    # Final safety: truncate if still too long
+    if len(text) > _TARGET_CHARS:
+        text = text[:_TARGET_CHARS] + "\n... (truncated)"
+
+    return text
 
 
 def get_region_refinement_prompt(
@@ -23,8 +162,9 @@ def get_region_refinement_prompt(
     """
     Build a prompt for refining a single heuristic region.
 
-    Only non-empty cells from this region are included, keeping the
-    prompt small enough for any context window.
+    For small regions all non-empty cells are included (with truncated
+    values).  For large regions the cells are sampled to stay within
+    token limits.
 
     Args:
         region_cells: Non-empty cells within this region.
@@ -32,7 +172,7 @@ def get_region_refinement_prompt(
         bottom_right: A1-notation bottom-right of the heuristic region.
     """
 
-    cells_block = "\n".join(get_cell_data_prompt(c) for c in region_cells)
+    cells_block = _sample_region_cells(region_cells)
 
     return f"""You are an expert spreadsheet analyst. You are given cell data for ONE region of an Excel worksheet.
 

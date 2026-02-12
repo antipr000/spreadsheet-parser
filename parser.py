@@ -2,11 +2,13 @@
 Spreadsheet parser — CLI entry point.
 
 Usage:
-    python parser.py <excel_file> [--output <output.json>]
+    python parser.py <excel_file> [--output <output.json>] [--sheet <sheet_name>]
 
 Loads an Excel workbook, extracts all semantic blocks from every sheet
 (headings, tables, key-value regions, text, charts), groups them into
 chunks, and writes the result as a single JSON file.
+
+If --sheet is provided, only that worksheet is processed.
 """
 
 from __future__ import annotations
@@ -17,12 +19,13 @@ import os
 import re
 import sys
 from pathlib import Path
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Optional, Tuple
 
 import dotenv
 import formulas
 import numpy as np
 import openpyxl
+from openpyxl.utils import get_column_letter
 
 from dto.blocks import TableBlock, Block
 from dto.output import SheetResult, WorkbookResult
@@ -128,9 +131,45 @@ def _compute_formula_values(file_path: str) -> Dict[Tuple[str, str], Any]:
     return computed
 
 
-def parse_workbook(file_path: str) -> WorkbookResult:
+def _load_cached_values(file_path: str) -> Dict[Tuple[str, str], Any]:
+    """
+    Open the workbook with ``data_only=True`` to read Excel's own cached
+    formula results.  Returns a lookup ``(SHEET_NAME_UPPER, COORD) → value``.
+
+    Fallback for when the ``formulas`` library cannot compute a value.
+    """
+    cached: Dict[Tuple[str, str], Any] = {}
+    try:
+        wb_data = openpyxl.load_workbook(file_path, data_only=True)
+        for ws_name in wb_data.sheetnames:
+            ws = wb_data[ws_name]
+            sheet_upper = ws_name.upper()
+            for row in ws.iter_rows():
+                for cell in row:
+                    v = cell.value
+                    if v is None:
+                        continue
+                    if isinstance(v, str) and v.startswith("="):
+                        continue
+                    coord_str = f"{get_column_letter(cell.column)}{cell.row}"
+                    cached[(sheet_upper, coord_str)] = v
+        wb_data.close()
+    except Exception:
+        logger.warning(
+            "Failed to load cached formula values (data_only workbook)",
+            exc_info=True,
+        )
+    return cached
+
+
+def parse_workbook(
+    file_path: str,
+    sheet_name_filter: Optional[str] = None,
+) -> WorkbookResult:
     """
     Parse an Excel workbook and return a structured ``WorkbookResult``.
+
+    If *sheet_name_filter* is provided, only that worksheet is processed.
     """
     logger.info("Loading workbook: %s", file_path)
 
@@ -143,23 +182,44 @@ def parse_workbook(file_path: str) -> WorkbookResult:
         rich_text=True,
     )
 
+    if sheet_name_filter and sheet_name_filter not in workbook.sheetnames:
+        logger.error(
+            "Worksheet '%s' not found. Available sheets: %s",
+            sheet_name_filter,
+            workbook.sheetnames,
+        )
+        raise ValueError(
+            f"Worksheet '{sheet_name_filter}' not found in workbook"
+        )
+
     # Compute formula values up-front
     logger.info("Computing formula values...")
     computed_values = _compute_formula_values(file_path)
     logger.info("  -> %d formula value(s) computed", len(computed_values))
 
+    # Load Excel's cached formula results as a fallback
+    logger.info("Loading cached formula values (data_only)...")
+    cached_values = _load_cached_values(file_path)
+    logger.info("  -> %d cached value(s) loaded", len(cached_values))
+
     extractor = SheetExtractor()
     sheet_results: list[SheetResult] = []
 
-    for sheet_name in workbook.sheetnames:
+    sheets_to_process = (
+        [sheet_name_filter] if sheet_name_filter else workbook.sheetnames
+    )
+
+    for sheet_name in sheets_to_process:
         logger.info("Processing sheet: %s", sheet_name)
-        if sheet_name != "Sheet_3":
-            continue
         ws = workbook[sheet_name]
 
         try:
             # Extract all blocks
-            blocks = extractor.extract(ws, workbook, computed_values=computed_values)
+            blocks = extractor.extract(
+                ws, workbook,
+                computed_values=computed_values,
+                cached_values=cached_values,
+            )
 
             # Enrich (e.g. render HTML for tables)
             blocks = _enrich_blocks(blocks)
@@ -209,6 +269,12 @@ def main() -> None:
         default=None,
         help="Output JSON file path (default: <input_name>_output.json)",
     )
+    parser.add_argument(
+        "-s",
+        "--sheet",
+        default=None,
+        help="Name of a single worksheet to process (default: all sheets)",
+    )
     args = parser.parse_args()
 
     excel_path = args.excel_file
@@ -224,7 +290,7 @@ def main() -> None:
         output_path = f"{stem}_output.json"
 
     # Run pipeline
-    result = parse_workbook(excel_path)
+    result = parse_workbook(excel_path, sheet_name_filter=args.sheet)
 
     # Serialize to JSON
     json_str = result.model_dump_json(indent=2, exclude_none=True)

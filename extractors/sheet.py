@@ -189,6 +189,7 @@ class SheetExtractor:
         val_map: Dict[str, List[str]],
         computed_values: Optional[Dict[Tuple[str, str], Any]] = None,
         sheet_name_upper: str = "",
+        cached_values: Optional[Dict[Tuple[str, str], Any]] = None,
     ) -> CellData:
         coord = _coord(cell.column, cell.row)
 
@@ -198,24 +199,29 @@ class SheetExtractor:
             pass
 
         # Extract formula and resolve the display value.
-        # For formula cells, look up the computed value from the pre-calculated
-        # formula results (keyed by (SHEET_NAME, COORDINATE)).
+        # Resolution order:
+        #   1. computed_values — from the ``formulas`` library
+        #   2. cached_values   — Excel's own cached results (data_only=True)
+        #   3. Raw formula string (last resort)
         formula: Optional[str] = None
         if isinstance(value, ArrayFormula):
             formula_text = getattr(value, "text", None) or ""
             formula = f"{{{formula_text}}}"
-            # Look up computed value
             cv = (computed_values or {}).get((sheet_name_upper, coord.upper()))
             if cv is not None:
                 value = cv
             else:
-                value = formula  # fallback: show formula as value
+                cached = (cached_values or {}).get((sheet_name_upper, coord.upper()))
+                value = cached if cached is not None else formula
         elif isinstance(value, str) and value.startswith("="):
             formula = value
-            # Look up computed value
             cv = (computed_values or {}).get((sheet_name_upper, coord.upper()))
             if cv is not None:
                 value = cv
+            else:
+                cached = (cached_values or {}).get((sheet_name_upper, coord.upper()))
+                if cached is not None:
+                    value = cached
 
         str_value: Optional[str] = None
         if value is not None:
@@ -264,6 +270,7 @@ class SheetExtractor:
         self,
         ws: Worksheet,
         computed_values: Optional[Dict[Tuple[str, str], Any]] = None,
+        cached_values: Optional[Dict[Tuple[str, str], Any]] = None,
     ) -> Tuple[List[CellData], int, int, int, int]:
         min_row, min_col, max_row, max_col = self._find_actual_used_range(ws)
         merge_map = self._build_merge_map(ws)
@@ -281,6 +288,7 @@ class SheetExtractor:
                         val_map,
                         computed_values=computed_values,
                         sheet_name_upper=sheet_name_upper,
+                        cached_values=cached_values,
                     )
                 )
         return cells, min_row, min_col, max_row, max_col
@@ -687,6 +695,7 @@ class SheetExtractor:
         ws: Worksheet,
         wb: Workbook,
         computed_values: Optional[Dict[Tuple[str, str], Any]] = None,
+        cached_values: Optional[Dict[Tuple[str, str], Any]] = None,
     ) -> List[Block]:
         """
         Extract all semantic blocks from a worksheet.
@@ -696,12 +705,14 @@ class SheetExtractor:
             wb: The formula workbook (needed for chart series resolution).
             computed_values: Pre-computed formula results keyed by
                 ``(SHEET_NAME_UPPER, COORDINATE_UPPER)``.
+            cached_values: Excel's own cached formula results (from
+                ``data_only=True``) as a fallback.
 
         Returns blocks sorted in reading order (top→bottom, left→right).
         """
         # Step 1: Read cells
         all_cells, min_row, min_col, max_row, max_col = self._read_all_cells(
-            ws, computed_values
+            ws, computed_values, cached_values=cached_values
         )
         if not all_cells:
             return self._extract_chart_blocks(ws, wb)

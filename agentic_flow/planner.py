@@ -36,6 +36,7 @@ class PlannerAgent:
         wb: Workbook,
         xlsx_path: str,
         computed_values: Optional[Dict[Tuple[str, str], Any]] = None,
+        cached_values: Optional[Dict[Tuple[str, str], Any]] = None,
     ) -> List[PlannedBlock]:
         """
         Run the planner on a single worksheet.
@@ -47,7 +48,7 @@ class PlannerAgent:
 
         # 1. Read cells & build grid
         all_cells, min_row, min_col, max_row, max_col = read_all_cells(
-            ws, computed_values
+            ws, computed_values, cached_values=cached_values
         )
         if not all_cells:
             logger.info("  [Planner] Sheet is empty")

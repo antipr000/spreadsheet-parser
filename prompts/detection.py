@@ -1,5 +1,8 @@
 """
 LLM prompts used by the AI-assisted detection path for each block type.
+
+Cell data is automatically sampled for large regions to stay within
+token limits.
 """
 
 from __future__ import annotations
@@ -7,12 +10,15 @@ from __future__ import annotations
 from typing import List
 
 from dto.cell_data import CellData
-from prompts.bounding_box import get_cell_data_prompt
+from prompts.bounding_box import _sample_cells_for_prompt
 
 
 def _cells_block(cells: List[CellData]) -> str:
-    """Compact multi-line representation of a cell list for LLM prompts."""
-    return "\n".join(get_cell_data_prompt(c) for c in cells)
+    """Compact multi-line representation of a cell list for LLM prompts.
+
+    Automatically samples large cell lists to stay within token limits.
+    """
+    return _sample_cells_for_prompt(cells)
 
 
 # -------------------------------------------------------------------

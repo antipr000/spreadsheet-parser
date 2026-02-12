@@ -391,4 +391,35 @@ def summarise_sheet(
             + "\n".join(footer_lines)
         )
 
-    return "\n\n".join(sections)
+    result = "\n\n".join(sections)
+
+    # ── Enforce target size ─────────────────────────────────────────
+    # If the assembled summary exceeds _TARGET_CHARS, progressively
+    # drop the least-critical sections until it fits.
+    if len(result) > _TARGET_CHARS:
+        # Priority order (lowest priority dropped first):
+        #   1. Column inventory
+        #   2. Sampled body rows
+        #   3. Merged cell ranges
+        #   4. Structural rows
+        #   5. Footer rows
+        #   6. Header rows  (never dropped)
+        #   7. Preamble     (never dropped)
+        drop_labels = [
+            "=== COLUMN INVENTORY",
+            "=== SAMPLE BODY ROWS",
+            "=== MERGED CELL RANGES",
+            "=== STRUCTURAL ROWS",
+            "=== FOOTER / LAST ROWS",
+        ]
+        for label in drop_labels:
+            sections = [s for s in sections if not s.startswith(label)]
+            result = "\n\n".join(sections)
+            if len(result) <= _TARGET_CHARS:
+                break
+
+    # Final safety: hard-truncate if still too long
+    if len(result) > _TARGET_CHARS:
+        result = result[:_TARGET_CHARS] + "\n... (truncated to fit token limit)"
+
+    return result

@@ -140,8 +140,15 @@ def read_cell(
     val_map: Dict[str, List[str]],
     computed_values: Optional[Dict[Tuple[str, str], Any]] = None,
     sheet_name_upper: str = "",
+    cached_values: Optional[Dict[Tuple[str, str], Any]] = None,
 ) -> CellData:
-    """Read a single openpyxl Cell into a CellData DTO."""
+    """Read a single openpyxl Cell into a CellData DTO.
+
+    Formula resolution order:
+      1. ``computed_values`` — results from the ``formulas`` library.
+      2. ``cached_values``   — Excel's own cached values (``data_only=True``).
+      3. The raw formula string (last resort).
+    """
     cd = coord(cell.column, cell.row)
 
     value = cell.value
@@ -151,13 +158,22 @@ def read_cell(
     if isinstance(value, ArrayFormula):
         formula_text = getattr(value, "text", None) or ""
         formula = f"{{{formula_text}}}"
+        # Try computed values first, then cached values, then formula string
         cv = (computed_values or {}).get((sheet_name_upper, cd.upper()))
-        value = cv if cv is not None else formula
+        if cv is not None:
+            value = cv
+        else:
+            cached = (cached_values or {}).get((sheet_name_upper, cd.upper()))
+            value = cached if cached is not None else formula
     elif isinstance(value, str) and value.startswith("="):
         formula = value
         cv = (computed_values or {}).get((sheet_name_upper, cd.upper()))
         if cv is not None:
             value = cv
+        else:
+            cached = (cached_values or {}).get((sheet_name_upper, cd.upper()))
+            if cached is not None:
+                value = cached
 
     str_value: Optional[str] = str(value) if value is not None else None
 
@@ -202,6 +218,7 @@ def read_cell(
 def read_all_cells(
     ws: Worksheet,
     computed_values: Optional[Dict[Tuple[str, str], Any]] = None,
+    cached_values: Optional[Dict[Tuple[str, str], Any]] = None,
 ) -> Tuple[List[CellData], int, int, int, int]:
     """
     Read every cell in the used range.
@@ -222,6 +239,7 @@ def read_all_cells(
                     cell, merge_map, val_map,
                     computed_values=computed_values,
                     sheet_name_upper=sheet_name_upper,
+                    cached_values=cached_values,
                 )
             )
     return cells, min_row, min_col, max_row, max_col
